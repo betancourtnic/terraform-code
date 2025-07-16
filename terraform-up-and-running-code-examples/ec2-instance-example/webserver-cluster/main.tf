@@ -96,20 +96,20 @@ resource "aws_security_group" "alb" {
     name = "terraform-example-alb"
 
     #allow inbound HTTP requests
-    ingress = [{
+    ingress {
         from_port = 80
         to_port = 80
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
-    }]
+    }
 
     #allow all outbound requests
-    egress = [{
+    egress {
         from_port = 0
         to_port = 0
         protocol = "-1"
         cidr_blocks = ["0.0.0.0/0"]
-    }]
+    }
 }
 
 #create target group for ASG
