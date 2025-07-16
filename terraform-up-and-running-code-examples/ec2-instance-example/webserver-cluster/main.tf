@@ -24,7 +24,7 @@ resource "aws_launch_configuration" "example" {
 #defines ASG
 resource "aws_autoscaling_group" "example" {
     launch_configuration = aws_launch_configuration.example.name
-    vpc_zone_identifier = data.aws_subnet_ids.default.ids
+    vpc_zone_identifier = data.aws_subnets.default.ids
 
     target_group_arns = [aws_lb_target_group.asg.arn]
     health_check_type = "ELB"
@@ -57,15 +57,19 @@ data "aws_vpc" "default" {
 }
 
 # look up subnet within VPC
-data "aws_subnet_ids" "default" {
-    vpc_id = data.aws_vpc.default.id
+data "aws_subnets" "default" {
+    filter {
+        name = "vpc-id"
+        values = [data.aws_vpc.default.id]
+    }
+   
 }
 
 #creates Application load balancer
 resource "aws_lb" "example" {
     name    = "terraform-asg-example"
     load_balancer_type = "application"
-    subnets = data.aws_subnet_ids.default.ids
+    subnets = data.aws_subnets.default.ids
     security_groups = [aws_security_group.alb.id]
 }
 
@@ -92,20 +96,20 @@ resource "aws_security_group" "alb" {
     name = "terraform-example-alb"
 
     #allow inbound HTTP requests
-    ingress {
+    ingress = [{
         from_port = 80
         to_port = 80
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
-    }
+    }]
 
     #allow all outbound requests
-    egress = {
+    egress = [{
         from_port = 0
         to_port = 0
         protocol = "-1"
         cidr_blocks = ["0.0.0.0/0"]
-    }
+    }]
 }
 
 #create target group for ASG
@@ -142,10 +146,4 @@ resource "aws_lb_listener_rule" "asg" {
         type = "forward"
         target_group_arn = aws_lb_target_group.asg.arn
     }
-}
-
-#output shows DNS name of the ALB
-output "alb_dns_name" {
-    value = aws_lb.example.dns_name
-    description = "The domain name of the load balancer"
 }
