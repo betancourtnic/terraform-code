@@ -57,3 +57,28 @@ data "aws_vpc" "default" {
 data "aws_subnet_ids" "default" {
     vpc_id = data.aws_vpc.default.id
 }
+
+#creates Application load balancer
+resource "aws_lb" "example" {
+    name    = "terraform-asg-example"
+    load_balancer_type = "application"
+    subnets = data.aws_subnet_ids.default.ids
+}
+
+#configure the ALB listener
+resource "aws_lb_listener" "http" {
+    load_balancer_arn = aws_lb.example.arn
+    port = 80
+    protocol = "HTTP"
+    
+    #by default, return 404 page
+    default_action {
+        type = "fixed-response"
+
+        fixed_response {
+            content_type = "text/plain"
+            message_body = "404: page not found"
+            status_code = 404
+        }
+    }
+}
