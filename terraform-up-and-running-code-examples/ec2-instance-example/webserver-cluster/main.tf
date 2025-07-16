@@ -126,3 +126,26 @@ resource "aws_lb_target_group" "asg" {
         unhealthy_threshold = 2
     }
 }
+
+#create LB listener rules that sends requests that match any path to the target group containing the ASG
+resource "aws_lb_listener_rule" "asg" {
+    listener_arn = aws_lb_listener.http.arn
+    priority = 100
+
+    condition {
+      path_pattern {
+        values = ["*"]
+      }
+    }
+
+    action {
+        type = "forward"
+        target_group_arn = aws_lb_target_group.asg.arn
+    }
+}
+
+#output shows DNS name of the ALB
+output "alb_dns_name" {
+    value = aws_lb.example.dns_name
+    description = "The domain name of the load balancer"
+}
