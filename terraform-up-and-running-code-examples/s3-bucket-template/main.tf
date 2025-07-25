@@ -70,11 +70,6 @@ resource "aws_s3_bucket" "example_bucket" {
   # Using a prefix from var.bucket_name_prefix and a unique suffix ensures this.
   bucket = local.full_bucket_name
 
-  # Enable versioning for data protection (highly recommended)
-  versioning {
-    enabled = var.enable_versioning
-  }
-
   # Enable server access logging (recommended for auditing)
   # IMPORTANT: The log_bucket_name must refer to an existing S3 bucket
   #            where logs will be stored. This log bucket should ideally have
@@ -100,6 +95,20 @@ resource "aws_s3_bucket" "example_bucket" {
 # -----------------------------------------------------------------------------
 # S3 Public Access Block Configuration
 # -----------------------------------------------------------------------------
+# S3 Bucket Versioning Configuration
+# -----------------------------------------------------------------------------
+# This resource enables versioning for the S3 bucket.
+# -----------------------------------------------------------------------------
+resource "aws_s3_bucket_versioning" "example_bucket_versioning" {
+  bucket = aws_s3_bucket.example_bucket.id
+  versioning_configuration {
+    status = var.enable_versioning ? "Enabled" : "Suspended"
+  }
+}
+
+# -----------------------------------------------------------------------------
+# S3 Public Access Block Configuration
+# -----------------------------------------------------------------------------
 # This resource explicitly blocks all public access to the S3 bucket.
 # This is a critical security best practice for private buckets.
 # -----------------------------------------------------------------------------
@@ -111,8 +120,6 @@ resource "aws_s3_bucket_public_access_block" "example_bucket_public_access_block
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-
-# -----------------------------------------------------------------------------
 # Output Values
 # Display important information about the deployed S3 bucket.
 # -----------------------------------------------------------------------------
